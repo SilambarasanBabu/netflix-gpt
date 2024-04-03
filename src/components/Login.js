@@ -1,12 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Header from "./Header";
+import { validateData } from "../utils/validate";
 
 const Login = () => {
   const [isSignUp, setisSignUp] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const email = useRef(null);
+  const password = useRef(null);
+
+  const handleClick = () => {
+    // console.log(email.current.value);
+    // console.log(password.current.value);
+    const msg = validateData(email.current.value, password.current.value);
+    setErrorMessage(msg);
+  };
 
   const toggleSignInForm = () => {
     setisSignUp(!isSignUp);
-  };
+  }; //Toggle function for sign up and sign in
 
   return (
     <div>
@@ -17,7 +29,12 @@ const Login = () => {
           alt="background"
         />
       </div>
-      <form className="absolute text-white w-3/12 bg-black p-12 my-36 mx-auto left-0 right-0 opacity-80">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+        }} //to prevent reloading
+        className="absolute text-white w-3/12 bg-black p-12 my-36 mx-auto left-0 right-0 opacity-80"
+      >
         <h1 className="font-bold text-3xl py-4">
           {isSignUp ? "Sign In" : "Sign Up"}
         </h1>
@@ -30,15 +47,21 @@ const Login = () => {
         )}
         <input
           type="text"
+          ref={email}
           placeholder="Email Address"
           className="p-4 my-4 w-full bg-gray-800"
         />
         <input
           type="password"
-          placeholder="Email Address"
+          ref={password}
+          placeholder="Password"
           className="p-4 my-4 w-full bg-gray-800"
         />
-        <button className="p-4 my-6 w-full bg-red-500 rounded-lg">
+        <p className="text-red-500 font-bold">{errorMessage}</p>
+        <button
+          className="p-4 my-6 w-full bg-red-500 rounded-lg"
+          onClick={handleClick}
+        >
           {isSignUp ? "Sign In" : "Sign Up"}
         </button>
         <p className="py-4">
