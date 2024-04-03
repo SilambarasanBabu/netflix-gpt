@@ -1,9 +1,14 @@
 import React, { useState, useRef } from "react";
 import Header from "./Header";
-import { validateData } from "../utils/validate";
+import { checkValidData } from "../utils/validate";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const Login = () => {
-  const [isSignUp, setisSignUp] = useState(true);
+  const [isSignIn, setisSignIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const email = useRef(null);
@@ -12,12 +17,54 @@ const Login = () => {
   const handleClick = () => {
     // console.log(email.current.value);
     // console.log(password.current.value);
-    const msg = validateData(email.current.value, password.current.value);
+    const msg = checkValidData(email.current.value, password.current.value);
     setErrorMessage(msg);
+    if (msg) return;
+
+    if (!isSignIn) {
+      //logic for signup form
+
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + " " + errorMessage);
+        });
+    } else {
+      //logic for signin form
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          if (
+            errorCode === "auth/invalid-credential" &&
+            errorMessage === "Firebase: Error (auth/invalid-credential)."
+          ) {
+            setErrorMessage("Check email and password");
+          }
+        });
+    }
   };
 
   const toggleSignInForm = () => {
-    setisSignUp(!isSignUp);
+    setisSignIn(!isSignIn);
   }; //Toggle function for sign up and sign in
 
   return (
@@ -36,9 +83,9 @@ const Login = () => {
         className="absolute text-white w-3/12 bg-black p-12 my-36 mx-auto left-0 right-0 opacity-80"
       >
         <h1 className="font-bold text-3xl py-4">
-          {isSignUp ? "Sign In" : "Sign Up"}
+          {isSignIn ? "Sign In" : "Sign Up"}
         </h1>
-        {!isSignUp && (
+        {!isSignIn && (
           <input
             type="text"
             placeholder="Full Name"
@@ -62,12 +109,12 @@ const Login = () => {
           className="p-4 my-6 w-full bg-red-500 rounded-lg"
           onClick={handleClick}
         >
-          {isSignUp ? "Sign In" : "Sign Up"}
+          {isSignIn ? "Sign In" : "Sign Up"}
         </button>
         <p className="py-4">
-          {isSignUp ? "New to netflix?" : "Already Registered?"}
+          {isSignIn ? "New to netflix?" : "Already Registered?"}
           <span className="font-bold cursor-pointer" onClick={toggleSignInForm}>
-            {isSignUp ? "Sign up now" : "Sign In now"}
+            {isSignIn ? "Sign up now" : "Sign In now"}
           </span>
         </p>
       </form>
